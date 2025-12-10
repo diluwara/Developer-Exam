@@ -61,6 +61,9 @@ export function UserForm({ onUserCreated }: UserFormProps) {
       }
 
       onUserCreated();
+      setName('');
+      setEmail('');
+      setDepartment('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -118,7 +121,7 @@ export function UserForm({ onUserCreated }: UserFormProps) {
             />
           </div>
 
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? 'Creating...' : 'Create User'}
           </Button>
         </form>

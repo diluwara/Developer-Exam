@@ -47,7 +47,7 @@ function App() {
 
   useEffect(() => {
     fetchUsers();
-  });
+  }, []);
 
   const handleUserCreated = () => {
     // Refresh the user list after creating a new user

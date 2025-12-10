@@ -9,15 +9,29 @@ router.get('/', async (req: Request, res: Response) => {
     const usersResult = await pool.query('SELECT * FROM users ORDER BY created_at DESC');
     const users = usersResult.rows;
 
-    for (let i = 0; i < users.length; i++) {
-      const postsResult = await pool.query(
-        'SELECT * FROM posts WHERE user_id = $1',
-        [users[i].id]
-      );
-      users[i].posts = postsResult.rows;
+    if (users.length === 0) {
+      return res.json([]);
+    }
+    const userIds = users.map((u) => u.id);
+    const postsResult = await pool.query(
+      'SELECT * FROM posts WHERE user_id = ANY($1) ORDER BY created_at DESC',
+      [userIds]
+    );
+
+    const postsByUserId: { [key: number]: any[] } = {};
+    for (const post of postsResult.rows) {
+      if (!postsByUserId[post.user_id]) {
+        postsByUserId[post.user_id] = [];
+      }
+      postsByUserId[post.user_id].push(post);
     }
 
-    res.json(users);
+    const usersWithPosts = users.map((user) => ({
+      ...user,
+      posts: postsByUserId[user.id] || [],
+    }));
+
+    res.json(usersWithPosts);
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Failed to fetch users' });
